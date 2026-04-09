@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Job Bot — Dashboard Report</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #f4f5f7;
+        --surface: #ffffff;
+        --border: #dfe1e6;
+        --text: #172b4d;
+        --muted: #5e6c84;
+        --blue: #0052cc;
+        --blue-lt: #deebff;
+        --green: #006644;
+        --green-lt: #e3fcef;
+        --red: #ae1400;
+        --red-lt: #ffebe6;
+        --yellow: #7a4e00;
+        --yellow-lt: #fff0b3;
+        --radius: 8px;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      nav {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 0 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 56px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .nav-brand {
+        font-size: 16px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .nav-meta {
+        font-size: 13px;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .nav-badge {
+        background: var(--blue);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 12px;
+      }
+
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 28px 24px;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+
+      .stat-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px 20px;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+      }
+
+      .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--blue);
+        line-height: 1;
+      }
+
+      .stat-sub {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      .filters {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+        align-items: center;
+      }
+
+      .filters input[type="text"] {
+        flex: 1;
+        min-width: 200px;
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 14px;
+        color: var(--text);
+        background: var(--surface);
+        outline: none;
+      }
+
+      .filters input[type="text"]:focus {
+        border-color: var(--blue);
+      }
+
+      .filters select {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 14px;
+        color: var(--text);
+        background: var(--surface);
+        cursor: pointer;
+        outline: none;
+      }
+
+      .filter-label {
+        font-size: 13px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      #lista-offerte {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .offerta-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        transition: box-shadow 0.15s;
+      }
+
+      .offerta-card:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      .card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 20px 24px 14px;
+        gap: 16px;
+      }
+
+      .card-titolo {
+        font-size: 17px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+
+      .card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .card-azienda {
+        color: var(--blue);
+        font-weight: 500;
+        font-size: 14px;
+      }
+
+      .score-circle {
+        min-width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: var(--blue);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .score-circle .num {
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .score-circle .lbl {
+        font-size: 9px;
+        opacity: 0.8;
+        margin-top: 2px;
+      }
+
+      /* ── Sezioni interne ─────────────────────────────────────── */
+      .card-body {
+        padding: 0 24px 20px;
+      }
+
+      .sezione {
+        background: #f8f9fa;
+        border-radius: 6px;
+        padding: 12px 14px;
+        margin-bottom: 10px;
+        font-size: 14px;
+      }
+
+      .sezione.danger {
+        background: var(--red-lt);
+        border-left: 3px solid #e53e3e;
+      }
+
+      .sezione-titolo {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+
+      .sezione ul {
+        padding-left: 18px;
+        line-height: 1.8;
+      }
+
+      /* ── Analisi aziendale ───────────────────────────────────── */
+      .analisi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .analisi-cell {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+
+      .analisi-cell .ac-label {
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+
+      /* ── Badge ───────────────────────────────────────────────── */
+      .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      .badge-green {
+        background: var(--green-lt);
+        color: var(--green);
+      }
+      .badge-red {
+        background: var(--red-lt);
+        color: var(--red);
+      }
+      .badge-blue {
+        background: var(--blue-lt);
+        color: var(--blue);
+      }
+      .badge-yellow {
+        background: var(--yellow-lt);
+        color: var(--yellow);
+      }
+      .badge-gray {
+        background: #e2e3e5;
+        color: #383d41;
+      }
+
+      /* ── Footer card ─────────────────────────────────────────── */
+      .card-footer {
+        border-top: 1px solid var(--border);
+        padding: 10px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .card-footer a {
+        color: var(--blue);
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .card-footer a:hover {
+        text-decoration: underline;
+      }
+
+      /* ── Stato candidatura ───────────────────────────────────── */
+      .stato-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .stato-inviata {
+        background: var(--blue-lt);
+        color: var(--blue);
+      }
+      .stato-risposta {
+        background: var(--green-lt);
+        color: var(--green);
+      }
+      .stato-rifiutata {
+        background: var(--red-lt);
+        color: var(--red);
+      }
+      .stato-errore {
+        background: var(--yellow-lt);
+        color: var(--yellow);
+      }
+
+      /* ── Empty state ─────────────────────────────────────────── */
+      .empty {
+        text-align: center;
+        padding: 64px 24px;
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      /* ── Responsive ──────────────────────────────────────────── */
+      @media (max-width: 600px) {
+        .card-top {
+          flex-direction: column;
+        }
+        .score-circle {
+          align-self: flex-end;
+        }
+        nav {
+          padding: 0 16px;
+        }
+        .container {
+          padding: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ── Navbar ─────────────────────────────────────────────── -->
+    <nav>
+      <div class="nav-brand">🤖 Job Bot Dashboard</div>
+      <div class="nav-meta">
+        <span id="nav-data">—</span>
+        <span class="nav-badge" id="nav-count">0 offerte</span>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Offerte trovate</div>
+          <div class="stat-value" id="st-trovate">—</div>
+          <div class="stat-sub">in questo report</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Score medio</div>
+          <div class="stat-value" id="st-score">—</div>
+          <div class="stat-sub">su 100</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Aziende analizzate</div>
+          <div class="stat-value" id="st-aziende">—</div>
+          <div class="stat-sub">con analisi politica</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Red flags</div>
+          <div class="stat-value" id="st-flags" style="color: #ae1400">—</div>
+          <div class="stat-sub">offerte con criticità</div>
+        </div>
+      </div>
+
+      <div class="filters">
+        <span class="filter-label">Filtra:</span>
+        <input
+          type="text"
+          id="filtro-testo"
+          placeholder="Cerca per titolo o azienda..."
+        />
+        <select id="filtro-orientamento">
+          <option value="">Tutti gli orientamenti</option>
+          <option value="progressista">Progressista</option>
+          <option value="conservatore">Conservatore</option>
+          <option value="centrista">Centrista</option>
+          <option value="neutro">Neutro</option>
+          <option value="non_determinabile">Non determinabile</option>
+        </select>
+        <select id="filtro-smart">
+          <option value="">Smart working: tutti</option>
+          <option value="full_remote">Full remote</option>
+          <option value="ibrido">Ibrido</option>
+          <option value="in_presenza">In presenza</option>
+        </select>
+        <select id="filtro-ordine">
+          <option value="score">Ordina per score</option>
+          <option value="azienda">Ordina per azienda</option>
+          <option value="cultura">Ordina per cultura</option>
+        </select>
+      </div>
+
+      <div id="lista-offerte">
+        <div class="empty">
+          Carica un file JSON generato dal bot oppure incolla i dati nella
+          variabile
+          <code>DATI</code> in fondo a questo file.
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function badge(val) {
+        const mappa = {
+          positiva: "green",
+          negativa: "red",
+          neutra: "gray",
+          insufficiente_info: "yellow",
+          progressista: "blue",
+          conservatore: "red",
+          centrista: "gray",
+          non_determinabile: "yellow",
+          alta: "green",
+          media: "yellow",
+          bassa: "red",
+          full_remote: "green",
+          ibrido: "blue",
+          in_presenza: "red",
+          inviata: "blue",
+          risposta: "green",
+          rifiutata: "red",
+          errore: "yellow",
+        };
+        const cls = mappa[val] || "gray";
+        return `<span class="badge badge-${cls}">${val || "—"}</span>`;
+      }
+
+      function statoPill(stato) {
+        return `<span class="stato-pill stato-${stato || "inviata"}">${stato || "inviata"}</span>`;
+      }
+
+      function renderCard(o) {
+        const analisi = o.analisi || {};
+        const temi = analisi.temi || {};
+        const motivi = (o.motivi_match || [])
+          .map((m) => `<li>${m}</li>`)
+          .join("");
+        const flags = (o.red_flags || []).map((f) => `<li>${f}</li>`).join("");
+
+        const sezioneFlags = flags
+          ? `
+    <div class="sezione danger">
+      <div class="sezione-titolo">⚠ Red flags</div>
+      <ul>${flags}</ul>
+    </div>`
+          : "";
+
+        const controversie = temi.controversie || {};
+        const swPolitica =
+          (temi.smart_working || {}).politica || "non_determinabile";
+        const orientam = analisi.orientamento || "non_determinabile";
+        const sc = analisi.score_cultura != null ? analisi.score_cultura : "—";
+        const affidab = analisi.affidabilita_analisi || "—";
+
+        return `
+  <div class="offerta-card"
+       data-score="${o.score || 0}"
+       data-azienda="${(o.azienda || "").toLowerCase()}"
+       data-cultura="${analisi.score_cultura || 0}"
+       data-orientamento="${orientam}"
+       data-smart="${swPolitica}">
+
+    <div class="card-top">
+      <div style="flex:1">
+        <div class="card-titolo">${o.titolo || "Titolo non disponibile"}</div>
+        <div class="card-meta">
+          <span class="card-azienda">${o.azienda || "—"}</span>
+          <span>📍 ${o.location || "—"}</span>
+          <span>🔗 ${o.fonte || "—"}</span>
+          ${o.stato ? statoPill(o.stato) : ""}
+        </div>
+      </div>
+      <div class="score-circle">
+        <span class="num">${o.score || "—"}</span>
+        <span class="lbl">match</span>
+      </div>
+    </div>
+
+    <div class="card-body">
+
+      ${
+        motivi
+          ? `
+      <div class="sezione">
+        <div class="sezione-titolo">Perché candidarsi</div>
+        <ul>${motivi}</ul>
+      </div>`
+          : ""
+      }
+
+      ${sezioneFlags}
+
+      <div class="sezione">
+        <div class="sezione-titolo">Analisi aziendale — ${o.azienda || "—"}</div>
+        <div class="analisi-grid">
+          <div class="analisi-cell">
+            <div class="ac-label">Orientamento</div>
+            ${badge(orientam)}
+          </div>
+          <div class="analisi-cell">
+            <div class="ac-label">Score cultura</div>
+            <strong>${sc}/100</strong>
+          </div>
+          <div class="analisi-cell">
+            <div class="ac-label">DEI</div>
+            ${badge((temi.DEI || {}).valutazione)}
+          </div>
+          <div class="analisi-cell">
+            <div class="ac-label">ESG</div>
+            ${badge((temi.ESG || {}).valutazione)}
+          </div>
+          <div class="analisi-cell">
+            <div class="ac-label">Smart working</div>
+            ${badge(swPolitica)}
+          </div>
+          <div class="analisi-cell">
+            <div class="ac-label">Controversie</div>
+            ${badge(controversie.presenti ? "negativa" : "positiva")}
+          </div>
+          <div class="analisi-cell">
+            <div class="ac-label">Affidabilità</div>
+            ${badge(affidab)}
+          </div>
+        </div>
+
+        ${
+          analisi.sintesi_generale
+            ? `<p style="font-size:13px;line-height:1.6;color:#333;margin-top:6px">${analisi.sintesi_generale}</p>`
+            : ""
+        }
+
+        ${
+          analisi.raccomandazione
+            ? `<p style="font-size:13px;margin-top:6px"><b>Raccomandazione:</b> ${analisi.raccomandazione}</p>`
+            : ""
+        }
+      </div>
+
+    </div>
+
+    <div class="card-footer">
+      <div>${o.data_trovata ? "Trovata il " + o.data_trovata.slice(0, 10) : ""}</div>
+      <a href="${o.link || "#"}" target="_blank">Vedi offerta →</a>
+    </div>
+  </div>`;
+      }
+
+      function renderTutto(dati) {
+        const lista = document.getElementById("lista-offerte");
+
+        if (!dati || !dati.length) {
+          lista.innerHTML =
+            '<div class="empty">Nessuna offerta da mostrare.</div>';
+          return;
+        }
+
+        const scoreMedia = Math.round(
+          dati.reduce((s, o) => s + (o.score || 0), 0) / dati.length,
+        );
+        const aziende = new Set(dati.map((o) => o.azienda)).size;
+        const conFlags = dati.filter(
+          (o) => o.red_flags && o.red_flags.length,
+        ).length;
+
+        document.getElementById("st-trovate").textContent = dati.length;
+        document.getElementById("st-score").textContent = scoreMedia;
+        document.getElementById("st-aziende").textContent = aziende;
+        document.getElementById("st-flags").textContent = conFlags;
+        document.getElementById("nav-count").textContent =
+          dati.length + " offerte";
+
+        lista.innerHTML = dati.map(renderCard).join("");
+      }
+
+      let DATI_GLOBALI = [];
+
+      function applicaFiltri() {
+        const testo = document
+          .getElementById("filtro-testo")
+          .value.toLowerCase();
+        const orient = document.getElementById("filtro-orientamento").value;
+        const smart = document.getElementById("filtro-smart").value;
+        const ordine = document.getElementById("filtro-ordine").value;
+
+        let filtrati = DATI_GLOBALI.filter((o) => {
+          const matchTesto =
+            !testo ||
+            (o.titolo || "").toLowerCase().includes(testo) ||
+            (o.azienda || "").toLowerCase().includes(testo);
+
+          const matchOrient =
+            !orient || (o.analisi || {}).orientamento === orient;
+
+          const matchSmart =
+            !smart ||
+            ((o.analisi || {}).temi || {}).smart_working?.politica === smart;
+
+          return matchTesto && matchOrient && matchSmart;
+        });
+
+        filtrati.sort((a, b) => {
+          if (ordine === "score") return (b.score || 0) - (a.score || 0);
+          if (ordine === "azienda")
+            return (a.azienda || "").localeCompare(b.azienda || "");
+          if (ordine === "cultura")
+            return (
+              ((b.analisi || {}).score_cultura || 0) -
+              ((a.analisi || {}).score_cultura || 0)
+            );
+          return 0;
+        });
+
+        renderTutto(filtrati);
+      }
+
+      [
+        "filtro-testo",
+        "filtro-orientamento",
+        "filtro-smart",
+        "filtro-ordine",
+      ].forEach((id) => {
+        document.getElementById(id).addEventListener("input", applicaFiltri);
+      });
+
+      function caricaDati(dati) {
+        DATI_GLOBALI = dati;
+        document.getElementById("nav-data").textContent =
+          new Date().toLocaleDateString("it-IT", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+          });
+        applicaFiltri();
+      }
+
+      const DATI_ESEMPIO = [
+        {
+          titolo: "Senior Python Developer",
+          azienda: "TechCorp Srl",
+          link: "https://linkedin.com",
+          fonte: "linkedin",
+          location: "Milano, Italia",
+          score: 82,
+          motivi_match: [
+            "5 anni di esperienza Python richiesti, tu ne hai 6",
+            "Stack identico: FastAPI + PostgreSQL",
+            "Settore fintech in cui hai già lavorato",
+          ],
+          red_flags: ["Richiede disponibilità immediata"],
+          data_trovata: "2026-04-10",
+          stato: "inviata",
+          analisi: {
+            orientamento: "progressista",
+            score_cultura: 78,
+            sintesi_generale:
+              "TechCorp è una scale-up milanese con forte attenzione alla cultura interna. Ha firmato la carta per la parità di genere e pubblica report ESG annuali. Nessuna controversia rilevante negli ultimi 24 mesi.",
+            raccomandazione:
+              "Azienda allineata a valori progressisti, buona cultura interna. Candidatura consigliata anche dal punto di vista valoriale.",
+            affidabilita_analisi: "media",
+            temi: {
+              DEI: {
+                valutazione: "positiva",
+                dettaglio: "Programmi attivi di mentoring per donne in tech.",
+              },
+              ESG: {
+                valutazione: "positiva",
+                dettaglio: "Report ESG pubblicato annualmente dal 2022.",
+              },
+              leadership: {
+                valutazione: "neutra",
+                dettaglio:
+                  "CEO poco presente sui media, nessuna dichiarazione controversa.",
+              },
+              cultura_interna: {
+                valutazione: "positiva",
+                dettaglio:
+                  "Rating Glassdoor 4.1/5, recensioni positive su work-life balance.",
+              },
+              controversie: {
+                presenti: false,
+                dettaglio: "Nessuna controversia rilevata.",
+              },
+              smart_working: {
+                politica: "ibrido",
+                dettaglio: "3 giorni remoto, 2 in ufficio.",
+              },
+            },
+          },
+        },
+        {
+          titolo: "Data Analyst Junior",
+          azienda: "OldCorp SpA",
+          link: "https://indeed.com",
+          fonte: "indeed",
+          location: "Roma, Italia",
+          score: 71,
+          motivi_match: [
+            "Richiede SQL e Power BI, competenze che possiedi",
+            "Settore assicurativo, esperienza trasferibile",
+          ],
+          red_flags: [
+            "Nessuna menzione di smart working",
+            "Range salariale non indicato",
+            "Azienda senza presenza su LinkedIn",
+          ],
+          data_trovata: "2026-04-10",
+          stato: "inviata",
+          analisi: {
+            orientamento: "conservatore",
+            score_cultura: 41,
+            sintesi_generale:
+              "OldCorp è una grande azienda assicurativa con sede a Roma. Le recensioni su Glassdoor evidenziano una cultura gerarchica e poca flessibilità. Non risultano iniziative DEI strutturate.",
+            raccomandazione:
+              "Cultura aziendale tradizionale e conservatrice. Valutare attentamente se compatibile con le proprie aspettative lavorative.",
+            affidabilita_analisi: "bassa",
+            temi: {
+              DEI: {
+                valutazione: "negativa",
+                dettaglio: "Nessuna iniziativa DEI documentata.",
+              },
+              ESG: {
+                valutazione: "insufficiente_info",
+                dettaglio: "Non sono stati trovati report ESG pubblici.",
+              },
+              leadership: {
+                valutazione: "neutra",
+                dettaglio: "Management poco visibile pubblicamente.",
+              },
+              cultura_interna: {
+                valutazione: "negativa",
+                dettaglio:
+                  "Rating Glassdoor 2.8/5, critiche frequenti sulla rigidità.",
+              },
+              controversie: {
+                presenti: false,
+                dettaglio: "Nessuna controversia rilevata.",
+              },
+              smart_working: {
+                politica: "in_presenza",
+                dettaglio:
+                  "Politica full in-presenza confermata da recensioni.",
+              },
+            },
+          },
+        },
+      ];
+
+      caricaDati(DATI_ESEMPIO);
+    </script>
+  </body>
+</html>
