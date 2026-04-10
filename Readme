@@ -16,6 +16,7 @@ Bot Python che automatizza la ricerca, il filtraggio e l'invio di candidature di
 
 ```
 job_bot/
+├── assets/cv         #cv in PDF
 ├── main.py           # orchestratore + CLI
 ├── scraper.py        # scraping LinkedIn e Indeed
 ├── ai_filter.py      # valutazione offerte e cover letter
